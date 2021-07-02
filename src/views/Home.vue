@@ -1,6 +1,6 @@
 <template>
 <!--              -->
-<!--   サイドバー   -->
+<!--   sideber   -->
 <!--              -->
   <div class="flex h-screen">
     <div class="w-1/5 bg-gray-800 text-white pt-3 px-4">
@@ -25,20 +25,20 @@
         <div class="font-bold opacity-50 text-lg">ダイレクトメッセージ</div>
         <PlusCircle />
       </div>
-      <div class="mt-2 flex items-center" v-for="user in users" :key="user.user_id">
-        <span class="bg-yellow-400 rounded-full w-3 h-3 mr-2"></span>
-        <span class="opacity-50" @click="directMessage(user.email)">{{ user.email }}</span>
-      </div>
       <!-- <div class="mt-2 flex items-center" v-for="user in users" :key="user.user_id">
         <span class="bg-yellow-400 rounded-full w-3 h-3 mr-2"></span>
-        <span class="opacity-50" @click="directMessage(user)">{{ user.email }}</span>
+        <span class="opacity-50" @click="directMessage(user.email)">{{ user.email }}</span>
       </div> -->
+      <div class="mt-2 flex items-center" v-for="user in users" :key="user.user_id">
+        <span class="bg-yellow-400 rounded-full w-3 h-3 mr-2"></span>
+        <span class="opacity-50" @click="directMessage(user)">{{ user.email }}</span>
+      </div>
     </div>
 
 
     <div class="flex flex-col flex-grow bg-gray-100">
       <!--            -->
-      <!--   ヘッター  -->
+      <!--   header   -->
       <!--            -->
       <header class="border-b">
         <div class="flex justify-between m-3">
@@ -62,21 +62,29 @@
         </div>
       </header>
 
+
       <!--          -->
-      <!--   メイン  -->
+      <!--   main   -->
       <!--          -->
       <main class="overflow-y-scroll flex-grow">
         <div class="flex flex-col ml-6 h-full">
           <div class="flex-grow overflow-y-scroll">
             <p>メッセージ一覧</p>
-          <div class="flex-grow overflow-y-scroll">
-            <div class="mt-2 mb-4 flex">
-              <Avator :user="user.email" />
-              <div class="ml-2">
-                <div class="font-bold">{{ user.email }}</div>
-                <div>{{ message }}</div>
+            <div class="flex-grow overflow-y-scroll">
+              <!-- <div class="mt-2 mb-4 flex">
+                <Avator :user="user.email" />
+                <div class="ml-2">
+                  <div class="font-bold">{{ user.email }}</div>
+                  <div>{{ message }}</div>
+                </div>
+              </div> -->
+              <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
+                <Avator :user="message.user" />
+                <div class="ml-2">
+                  <div class="font-bold">{{ message.user }}</div>
+                  <div>{{ message.content }}</div>
+                </div>
               </div>
-            </div>
             </div>
           </div>
           <div class="border border-gray-900 rounded mb-4">
@@ -97,6 +105,10 @@
     </div>
   </div>  
 </template>
+
+
+
+
 
 <script>
 import firebase from 'firebase/app';
@@ -145,32 +157,73 @@ export default {
       firebase.auth().signOut();
       this.$router.push("/signin");
     },
+    // sendMessage() {
+    //   console.log(this.message);
+    // },
+    // directMessage(email) {
+    //     this.channel_name = email;
+    //     this.placeholder = email + "へのメッセージ";
+    // }
     sendMessage() {
-      console.log(this.message);
+      const newMessage = firebase
+        .database()
+        .ref("messages")
+        .child(this.channel_id)
+        .push();
+
+      const key_id = newMessage.key;
+
+      newMessage.set({
+        key: key_id,
+        content: this.message,
+        user: this.user.email,
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      });
+
+      this.message = "";
     },
-    directMessage(email) {
-      this.channel_name = email;
-      this.placeholder = email + "へのメッセージ";
+
+    directMessage(user) {
+      this.messages = [];
+      this.user.uid > user.user_id
+        ? (this.channel_id = this.user.uid + "-" + user.user_id)
+        : (this.channel_id = user.user_id + "-" + this.user.uid);
+
+      this.channel_name = user.email;
+      this.placeholder = user.email + "へのメッセージ";
+
+      firebase
+        .database()
+        .ref("messages")
+        .child(this.channel_id)
+        .on("child_added", snapshot => {
+          this.messages.push(snapshot.val());
+        });
     }
   },
 
-
   mounted() {
-  this.user = firebase.auth().currentUser;
+    this.user = firebase.auth().currentUser;
 
-  firebase
-    .database()
-    .ref("users")
-    .on("child_added", snapshot => {
-      this.users.push(snapshot.val());
-    });
+    firebase
+      .database()
+      .ref("users")
+      .on("child_added", snapshot => {
+        this.users.push(snapshot.val());
+      });
   },
+   beforeDestroy() {
+    firebase
+      .database()
+      .ref("users")
+      .off();
 
-  beforeDestroy() {
-  firebase
-    .database()
-    .ref("users")
-    .off();
-  },
-};
+    firebase
+      .database()
+      .ref("messages")
+      .child(this.channel_id)
+      .off();
+  }
+
+}
 </script>
