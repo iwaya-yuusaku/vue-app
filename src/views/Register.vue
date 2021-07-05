@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-screen">
     <header class="flex justify-between p-4 border-b items-center">
-      <h1 class="font-semibold text-xl leading-tight">岩谷ちゃんねる</h1>
+      <h1 class="font-semibold text-xl leading-tight">Chat</h1>
       <button class="py-1 px-4 border-2 border-purple-400 rounded-2xl">
         <router-link to="/signin">サインイン</router-link>
       </button>

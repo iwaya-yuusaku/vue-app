@@ -1,9 +1,9 @@
 <template>
   <div class="flex flex-col h-screen">
     <header class="flex justify-between p-4 border-b items-center">
-      <h1 class="font-semibold text-xl leading-tight">岩谷ちゃんねる</h1>
+      <h1 class="font-semibold text-xl leading-tight">Chat</h1>
       <button class="py-1 px-4 border-2 border-purple-400 rounded-2xl">
-        <router-link to="/register">岩谷ちゃんねるをはじめる</router-link>
+        <router-link to="/register">Chatをはじめる</router-link>
       </button>
     </header>
     <div class="bg-purple-100 flex-auto">
@@ -20,7 +20,7 @@
                     <input
                     type="email"
                     v-model="email"
-                    placeholder="you@example.com"
+                    placeholder="メールアドレス"
                     class="text-xl w-3/5 p-3 border rounded"
                     />
                 </div>
